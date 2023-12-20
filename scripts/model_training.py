@@ -27,10 +27,8 @@ class ModelTrainer:
         rmse = np.sqrt(np.mean((predictions - targets) ** 2))
         return rmse
 
-
-# Example usage
 if __name__ == "__main__":
-    data_folder = '../data/raw_data'  # Update with your actual data folder path
+    data_folder = '../data/raw_data'
     trainer = ModelTrainer(data_folder)
     model, rmse = trainer.train_model()
     print(f"Root Mean Squared Error (RMSE): {rmse}")

@@ -10,8 +10,7 @@ class FeatureExtractor:
             if mol is not None:
                 descriptors = [
                     Descriptors.MolWt(mol),
-                    Descriptors.NumHAcceptors(mol),
-                    # Add more descriptors as needed
+                    Descriptors.NumHAcceptors(mol)
                 ]
                 return descriptors
             else:
