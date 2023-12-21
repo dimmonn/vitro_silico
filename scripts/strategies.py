@@ -4,7 +4,6 @@ import numpy as np
 class BaseStrategy:
 
     def __init__(self, data_folder, model, feature_extractor):
-        self.data_folder = data_folder
         self.loader = DataLoader(data_folder)
         self.fn = feature_extractor
         self.model = model
