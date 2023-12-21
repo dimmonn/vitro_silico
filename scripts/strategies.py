@@ -1,6 +1,6 @@
 from sklearn.model_selection import KFold
 from data_loading import DataLoader
-
+import numpy as np
 class BaseStrategy:
 
     def __init__(self, data_folder, model, feature_extractor):
