@@ -1,6 +1,7 @@
 from sklearn.ensemble import RandomForestRegressor
 from feature_engineering import FeatureExtractor
 from strategies import CustomFoldStrategy
+from strategies import CrossValidationStrategy
 from strategies import BaseStrategy
 
 
@@ -22,3 +23,6 @@ if __name__ == "__main__":
     #   def __init__(self, data_folder, model, feature_extractor):
     print(f"Validation RMSE: {val_rmse}")
     print(f"Test RMSE: {test_rmse}")
+    trainer1 = ModelTrainer(strategy=CrossValidationStrategy(data_folder, model=rf_model, feature_extractor=fn))
+    scores = trainer1.train_model()
+    print(f"Validation RMSE: {scores}")

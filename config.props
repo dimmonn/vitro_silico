@@ -1,0 +1,7 @@
+[model]
+n_estimators = 100
+random_state = 42
+
+[data]
+data_path = ../data/raw_data
+data_url = https://urls
