@@ -1,3 +1,5 @@
+import logging
+
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
@@ -5,6 +7,9 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.inspection import permutation_importance
 from lime.lime_tabular import LimeTabularExplainer
 import numpy as np
+from base_logger import VitroLogger
+
+logger = VitroLogger()
 
 
 class FeatureSelector:
@@ -35,11 +40,19 @@ class FeatureSelector:
             X_train = X_train[:, top_features_indices]
         elif isinstance(self.model, MLPRegressor):
             explainer = LimeTabularExplainer(X_train, mode='regression')
-            explanation = explainer.explain_instance(X_train[0], self.model.predict, num_features=(
-                self.top if self.top < explainer.size else explainer.as_list().size))
-            top_features = explanation.as_list()
-            top_feature_names = [x[0] for x in top_features]
-            top_indices = [list(X_train[0]).index(feature) for feature in top_feature_names]
+            top_indices = []
+
+            for instance in X_train:
+                explanation = explainer.explain_instance(instance, self.model.predict, num_features=(
+                    self.top if self.top < len(explainer.feature_names) else len(explainer.feature_names)))
+                top_features = explanation.as_list()
+                try:
+                    top_feature_indices = [int(feature[0].split()[0]) for feature in
+                                           top_features]
+                except:
+                    logger.error(message=f'strange feature {str(top_features)}')
+                    continue
+                top_indices.append(top_feature_indices)
             X_train = X_train[:, top_indices]
 
         return X_train, y_train
