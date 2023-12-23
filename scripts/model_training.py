@@ -5,7 +5,9 @@ from strategies import CrossValidationStrategy
 from base_logger import VitroLogger as logger
 import json
 from typing import List
-
+from sklearn.linear_model import LinearRegression
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
 logger = logger()
 
 
@@ -39,5 +41,5 @@ if __name__ == "__main__":
         logger.info(strategy.train_model())
     context = ModelContex()
     for model in context.models:
-        strategy = CrossValidationStrategy(None, feature_extractor=fn)
+        strategy = CrossValidationStrategy(model, feature_extractor=fn)
         logger.info(strategy.train_model())

@@ -8,12 +8,11 @@ from features_selection import FeatureSelector
 class BaseStrategy:
 
     def __init__(self, model, feature_extractor):
-        extracted_properties = self.read_properties_file("../config.props")
-        self.loader = DataLoader(extracted_properties['data']['data_path'])
+        self.loader = DataLoader('../data/raw_data')
         self.fn = feature_extractor
         self.data = self.loader.load_and_process_data(self.fn)
         self.model = model
-        self.selector = FeatureSelector(self.model, int(extracted_properties['features']['top']))
+        self.selector = FeatureSelector(self.model, int(10))
         self.rmse_scores = []
         self.top_features = []
         self.rmse_val = None
@@ -57,26 +56,11 @@ class BaseStrategy:
         y = data['y_exp']
         return np.array(X), np.array(y)
 
-    def read_properties_file(self, file_path):
-        config = configparser.ConfigParser()
-        config.read(file_path)
-
-        properties = {}
-        for section in config.sections():
-            properties[section] = {}
-            for key, value in config.items(section):
-                if value.startswith('[') and value.endswith(']'):
-                    value = [item.strip() for item in value[1:-1].split(',')]
-                properties[section][key] = value
-
-        return properties
-
 
 class CustomFoldStrategy(BaseStrategy):
 
     def __init__(self, model, feature_extractor):
         super().__init__(model, feature_extractor)
-        self.strategy_name = f'{model} CustomFoldStrategy'
 
     def train_model(self):
         train_data = self.data[self.data['fold'].isin([0, 1, 2])]
@@ -98,7 +82,6 @@ class CrossValidationStrategy(BaseStrategy):
 
     def __init__(self, model, feature_extractor):
         super().__init__(model, feature_extractor)
-        self.strategy_name = f'{model} CrossValidationStrategy'
 
     def train_model(self):
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
