@@ -23,32 +23,70 @@ scripts/
 
 ### Scripts
 
-- **`data_loading.py`**: Contains the `DataLoader` class to load and process raw data.
-- **`feature_engineering.py`**: Defines the `FeatureExtractor` class to extract features from chemical compounds.
-- **`model_training.py`**: Includes the `ModelTrainer` class to train machine learning models.
-- **`strategies.py`**: Holds strategies for model training like `BaseStrategy`, `CustomFoldStrategy`, and `CrossValidationStrategy`.
+- **`data_loading.py`**: Loads and processes raw data.
+- **`feature_engineering.py`**: Extracts features from chemical compounds using RDKit.
+- **`model_training.py`**: Trains machine learning models.
+- **`strategies.py`**: Contains various strategies for model training.
 
 ## Usage
 
 ### `data_loading.py`
 
-- `DataLoader`: Loads and processes raw data to create feature sets.
+- `DataLoader`: Loads and processes raw data.
 
 ### `feature_engineering.py`
 
-- `FeatureExtractor`: Uses RDKit to extract molecular features from SMILES strings.
+- `FeatureExtractor`: Extracts molecular features from SMILES strings using RDKit.
 
 ### `model_training.py`
 
-- `ModelTrainer`: Trains models using different strategies like `CustomFoldStrategy` or `CrossValidationStrategy`.
+- `ModelTrainer`: Trains models using different strategies (`CustomFoldStrategy`, `CrossValidationStrategy`).
 
 ### `strategies.py`
 
-- `BaseStrategy`: Base class defining common methods for model training strategies.
-- `CustomFoldStrategy`: Implements a custom fold strategy for model training.
+- `BaseStrategy`: Base class with common methods for model training strategies.
+- `CustomFoldStrategy`: Implements a custom fold strategy.
 - `CrossValidationStrategy`: Implements cross-validation for model training.
 
-## How to Use
+## Installation
 
-1. **Prepare Raw Data**: Place raw data files in the `raw_data` directory.
-2. **Run `model_training.py`**: Update paths and configurations in the scripts and run `model_training.py` to train and evaluate models using different strategies.
+1. **Dependencies**: Python, RDKit, scikit-learn.
+2. **Environment Setup**: Create a virtual environment.
+3. **Installation**: Install dependencies and run the project.
+
+## Data Description
+
+- Raw data files in `raw_data` directory.
+- scripts.model_training.ModelTrainer.
+
+## Usage Examples
+
+- scripts.model_training.ModelTrainer.
+
+## Contributing
+
+- UJ doctoral school.
+
+## License and Acknowledgements
+
+- Project license information, issued for UJ
+- Acknowledgements for third-party resources or libraries.
+
+## Future Improvements
+
+- ADD DI framework, possibly UI.
+
+## References
+
+- https://docs.google.com/document/d/1oqVmAtbBk4b_U5AS13IMOFcAoYgXgn_Dz7PLa86mEow/edit.
+
+## Conclusion
+
+- The Vitro-Silico project brings together a suite of tools and methodologies aimed at predictive modeling in chemical compound analysis. Throughout this endeavor, we have achieved several milestones:
+
+- Model Training and Evaluation
+Training Strategies: Developed various training strategies such as CustomFoldStrategy and CrossValidationStrategy to optimize model performance under different conditions.
+
+- Feature Engineering: Implemented feature extraction techniques using RDKit to transform SMILES strings into meaningful molecular descriptors for model input.
+
+- Model Selection: Explored diverse machine learning models including RandomForest, SVR, MLPRegressor, and LinearRegression, tailored to suit different data characteristics.
