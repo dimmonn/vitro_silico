@@ -17,7 +17,7 @@ class BaseStrategy:
         self.top_features = []
         self.rmse_val = None
         self.rmse_test = None
-        self.strategy_name = None
+        self.strategy_name = f'{type(self).__name__} {type(model).__name__}'
 
     def __str__(self):
         info = f"Strategy Name: {self.strategy_name}\n"
