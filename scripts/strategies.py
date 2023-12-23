@@ -1,15 +1,43 @@
 from sklearn.model_selection import KFold
 from data_loading import DataLoader
 import numpy as np
+import configparser
+from features_selection import FeatureSelector
 
 
 class BaseStrategy:
 
-    def __init__(self, data_folder, model, feature_extractor):
-        self.loader = DataLoader(data_folder)
+    def __init__(self, model, feature_extractor):
+        extracted_properties = self.read_properties_file("../config.props")
+        self.loader = DataLoader(extracted_properties['data']['data_path'])
         self.fn = feature_extractor
         self.data = self.loader.load_and_process_data(self.fn)
         self.model = model
+        self.selector = FeatureSelector(self.model, int(extracted_properties['features']['top']))
+        self.rmse_scores = []
+        self.top_features = []
+        self.rmse_val = None
+        self.rmse_test = None
+        self.strategy_name = None
+
+    def __str__(self):
+        info = f"Strategy Name: {self.strategy_name}\n"
+
+        if self.rmse_val is not None and self.rmse_test is not None and self.top_features:
+            info += f"RMSE (Validation): {self.rmse_val}, RMSE (Test): {self.rmse_test}, "
+            info += f"Top Features: {self._format_feature_list(self.top_features)}"
+        elif self.rmse_scores and self.top_features:
+            info += f"RMSE Scores: {self.rmse_scores}, "
+            info += f"Top Features: {self._format_feature_list(self.top_features)}"
+        else:
+            info += "No valid information available."
+        return info + "\n" + "=" * 50 + "\n"
+
+    def _format_feature_list(self, features, max_items=5):
+        if len(features) <= max_items:
+            return str(features)
+        else:
+            return f"{str(features[:max_items])[:-1]}, ... ({len(features) - max_items} more items)"
 
     def train(self, X_train, y_train):
         self.model.fit(X_train, y_train)
@@ -27,34 +55,53 @@ class BaseStrategy:
     def get_features_and_labels(self, data):
         X = list(data['features'])
         y = data['y_exp']
-        return X, y
+        return np.array(X), np.array(y)
+
+    def read_properties_file(self, file_path):
+        config = configparser.ConfigParser()
+        config.read(file_path)
+
+        properties = {}
+        for section in config.sections():
+            properties[section] = {}
+            for key, value in config.items(section):
+                if value.startswith('[') and value.endswith(']'):
+                    value = [item.strip() for item in value[1:-1].split(',')]
+                properties[section][key] = value
+
+        return properties
 
 
 class CustomFoldStrategy(BaseStrategy):
+
+    def __init__(self, model, feature_extractor):
+        super().__init__(model, feature_extractor)
+        self.strategy_name = f'{model} CustomFoldStrategy'
 
     def train_model(self):
         train_data = self.data[self.data['fold'].isin([0, 1, 2])]
         val_data = self.data[self.data['fold'] == 3]
         test_data = self.data[self.data['fold'] == 4]
-
         X_train, y_train = self.get_features_and_labels(train_data)
         X_val, y_val = self.get_features_and_labels(val_data)
         X_test, y_test = self.get_features_and_labels(test_data)
         self.train(X_train, y_train)
-
         predictions_val = self.predict(X_val)
-        rmse_val = self.calculate_rmse(predictions_val, y_val)
-        # msi wiac perwiastek
+        self.rmse_val = self.calculate_rmse(predictions_val, y_val)
         predictions_test = self.predict(X_test)
-        rmse_test = self.calculate_rmse(predictions_test, y_test)
-
-        return self, rmse_val, rmse_test
+        self.rmse_test = self.calculate_rmse(predictions_test, y_test)
+        self.top_features = self.selector.select_features(X_train, y_train)
+        return self
 
 
 class CrossValidationStrategy(BaseStrategy):
+
+    def __init__(self, model, feature_extractor):
+        super().__init__(model, feature_extractor)
+        self.strategy_name = f'{model} CrossValidationStrategy'
+
     def train_model(self):
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
-        rmse_scores = []
         for train_index, test_index in kf.split(self.data):
             train_data = self.data.iloc[train_index]
             test_data = self.data.iloc[test_index]
@@ -63,5 +110,6 @@ class CrossValidationStrategy(BaseStrategy):
             self.train(X_train, y_train)
             predictions_test = self.predict(X_test)
             rmse_test = self.calculate_rmse(predictions_test, y_test)
-            rmse_scores.append(rmse_test)
-        return rmse_scores
+            self.rmse_scores.append(rmse_test)
+            self.top_features.append(self.selector.select_features(X_train, y_train))
+        return self
