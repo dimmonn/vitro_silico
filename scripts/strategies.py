@@ -1,7 +1,6 @@
 from sklearn.model_selection import KFold
 from data_loading import DataLoader
 import numpy as np
-import configparser
 from features_selection import FeatureSelector
 
 
@@ -18,6 +17,18 @@ class BaseStrategy:
         self.rmse_val = None
         self.rmse_test = None
         self.strategy_name = f'{type(self).__name__} {type(model).__name__}'
+
+    def flatten_nested_arrays(self, data):
+        if isinstance(data, np.ndarray):
+            return [data]
+        elif isinstance(data, (list, tuple)):
+            flattened = []
+            for item in data:
+                flattened.extend(self.flatten_nested_arrays(item))
+            return flattened
+        else:
+            return [data]
+
 
     def __str__(self):
         info = f"Strategy Name: {self.strategy_name}\n"
@@ -74,7 +85,8 @@ class CustomFoldStrategy(BaseStrategy):
         self.rmse_val = self.calculate_rmse(predictions_val, y_val)
         predictions_test = self.predict(X_test)
         self.rmse_test = self.calculate_rmse(predictions_test, y_test)
-        self.top_features = self.selector.select_features(X_train, y_train)
+        selected = self.flatten_nested_arrays(self.selector.select_features(X_train, y_train))
+        self.top_features.append(selected)
         return self
 
 
@@ -94,5 +106,6 @@ class CrossValidationStrategy(BaseStrategy):
             predictions_test = self.predict(X_test)
             rmse_test = self.calculate_rmse(predictions_test, y_test)
             self.rmse_scores.append(rmse_test)
-            self.top_features.append(self.selector.select_features(X_train, y_train))
+            selected = self.flatten_nested_arrays(self.selector.select_features(X_train, y_train))
+            self.top_features.append(selected)
         return self
