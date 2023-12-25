@@ -6,19 +6,23 @@ This repository contains scripts and notebooks to train and evaluate machine lea
 
 ## Project Structure
 ```
-data/
-├── processed_data/
-└── raw_data/
-├── 2Z5Y.csv
-├── 5HT2.csv
-└── CDK2.csv
-notebooks/
-scripts/
+data
+├── processed_data
+│   └── CDK2.csv
+└── raw_data
+    ├── 2Z5Y.csv
+    └── 5HT2.csv
+scripts
+├── app.log
+├── base_logger.py
 ├── data_loading.py
 ├── feature_engineering.py
-├── model_evaluation.py
+├── features_selection.py
+├── freesolv_dglgraph.bin
+├── model_analyzer.py
 ├── model_training.py
-└── strategies.py
+├── strategies.py
+
 ```
 
 ### Scripts

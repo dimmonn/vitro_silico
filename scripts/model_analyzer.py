@@ -3,6 +3,7 @@ from scipy.stats import chi2_contingency
 from base_logger import VitroLogger as logger
 from typing import List
 import numpy as np
+
 logger = logger()
 
 
@@ -43,6 +44,6 @@ class Analyzer:
                 logger.error(e)
             p_values.append(p)
 
-        significant_differences = [p < 0.05 for p in p_values]
+        significant_differences = [{p, p < 0.05} for p in p_values]
         logger.info(f"Significant differences between feature sets in: {significant_differences}")
         return significant_differences
