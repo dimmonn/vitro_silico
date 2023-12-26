@@ -1,13 +1,14 @@
 from sklearn.model_selection import KFold
-from data_loading import DataLoader
-import numpy as np
-from features_selection import FeatureSelector
+from scripts.loaders.data_loading import DataLoader
+from scripts.features.features_selection import FeatureSelector
+from scripts.factories.importance_factor import *
+from scripts.factories.selection_factory import ImportanceFactorySelector
 
 
 class BaseStrategy:
 
     def __init__(self, model, feature_extractor):
-        self.loader = DataLoader('../data/raw_data')
+        self.loader = DataLoader('data/raw_data')
         self.fn = feature_extractor
         self.data = self.loader.load_and_process_data(self.fn)
         self.model = model
@@ -29,7 +30,6 @@ class BaseStrategy:
         else:
             return [data]
 
-
     def __str__(self):
         info = f"Strategy Name: {self.strategy_name}\n"
 
@@ -49,6 +49,7 @@ class BaseStrategy:
         else:
             return f"{str(features[:max_items])[:-1]}, ... ({len(features) - max_items} more items)"
 
+    # TODO
     def train(self, X_train, y_train):
         self.model.fit(X_train, y_train)
 
@@ -63,9 +64,10 @@ class BaseStrategy:
         return rmse
 
     def get_features_and_labels(self, data):
-        X = list(data['features'])
-        y = data['y_exp']
-        return np.array(X), np.array(y)
+        X = data['features']
+        y_exp = data['y_exp']
+        y_sim = data['y_sim']
+        return np.array(X.tolist()), np.array(y_exp.tolist()), np.array(y_sim.tolist())
 
 
 class CustomFoldStrategy(BaseStrategy):
@@ -77,16 +79,20 @@ class CustomFoldStrategy(BaseStrategy):
         train_data = self.data[self.data['fold'].isin([0, 1, 2])]
         val_data = self.data[self.data['fold'] == 3]
         test_data = self.data[self.data['fold'] == 4]
-        X_train, y_train = self.get_features_and_labels(train_data)
-        X_val, y_val = self.get_features_and_labels(val_data)
-        X_test, y_test = self.get_features_and_labels(test_data)
-        self.train(X_train, y_train)
+        X_train, y_train_exp, y_train_sim = self.get_features_and_labels(train_data)
+        X_val, y_val_exp, y_val_sim = self.get_features_and_labels(val_data)
+        X_test, y_test_exp, y_test_sim = self.get_features_and_labels(test_data)
+        self.importance_factory = ImportanceFactorySelector(self.model, X_train, y_train_exp).createImportanceFactor(
+            str(type(self.model).__name__).rsplit('.', 1)[-1]
+        )
+        self.train(X_train, y_train_exp)
         predictions_val = self.predict(X_val)
-        self.rmse_val = self.calculate_rmse(predictions_val, y_val)
+        self.rmse_val = self.calculate_rmse(predictions_val, y_val_exp)
         predictions_test = self.predict(X_test)
-        self.rmse_test = self.calculate_rmse(predictions_test, y_test)
-        selected = self.flatten_nested_arrays(self.selector.select_features(X_train, y_train))
+        self.rmse_test = self.calculate_rmse(predictions_test, y_test_exp)
+        selected = self.flatten_nested_arrays(self.selector.select_features(self.importance_factory))
         self.top_features.append(selected)
+
         return self
 
 
@@ -100,12 +106,16 @@ class CrossValidationStrategy(BaseStrategy):
         for train_index, test_index in kf.split(self.data):
             train_data = self.data.iloc[train_index]
             test_data = self.data.iloc[test_index]
-            X_train, y_train = self.get_features_and_labels(train_data)
-            X_test, y_test = self.get_features_and_labels(test_data)
-            self.train(X_train, y_train)
+            X_train, y_train_exp, y_train_sim = self.get_features_and_labels(train_data)
+            X_test, y_test_exp, y_test_sim = self.get_features_and_labels(test_data)
+            self.importance_factory = ImportanceFactorySelector(self.model, X_train,
+                                                                y_train_exp).createImportanceFactor(
+                str(type(self.model).__name__).rsplit('.', 1)[-1]
+            )
+            self.train(X_train, y_train_exp)
             predictions_test = self.predict(X_test)
-            rmse_test = self.calculate_rmse(predictions_test, y_test)
+            rmse_test = self.calculate_rmse(predictions_test, y_test_exp)
             self.rmse_scores.append(rmse_test)
-            selected = self.flatten_nested_arrays(self.selector.select_features(X_train, y_train))
+            selected = self.flatten_nested_arrays(self.selector.select_features(self.importance_factory))
             self.top_features.append(selected)
         return self

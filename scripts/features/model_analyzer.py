@@ -1,6 +1,6 @@
 from itertools import combinations
 from scipy.stats import chi2_contingency
-from base_logger import VitroLogger as logger
+from scripts.base_logger import VitroLogger as logger
 from typing import List
 import numpy as np
 
