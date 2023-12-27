@@ -1,6 +1,7 @@
 import numpy as np
 from scripts.factories.importance_factor import BaseImportanceFactor
 
+
 class FeatureSelector:
     def __init__(self, model, top: int = 10, debug: bool = False):
         self.model = model

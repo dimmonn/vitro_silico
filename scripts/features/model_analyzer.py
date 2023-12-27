@@ -1,10 +1,10 @@
 from itertools import combinations
 from scipy.stats import chi2_contingency
-from scripts.base_logger import VitroLogger as logger
+from scripts.base_logger import VitroLogger
 from typing import List
 import numpy as np
 
-logger = logger()
+logger = VitroLogger()
 
 
 class Analyzer:
@@ -17,33 +17,27 @@ class Analyzer:
         self.top_features.append(selected_feature)
 
     def analyze_feature_sets(self):
-        flattened_features = [item.flatten() for sublist in self.top_features for tup in sublist for item in tup if
-                              isinstance(item, np.ndarray)]
-        tuple_flattened_features = [tuple(arr.tolist()) for arr in flattened_features]
-        unique_features_per_model = [set(arr) for arr in tuple_flattened_features]
-        feature_combinations = list(combinations(unique_features_per_model, 2))
-
+        feature_combinations = combinations(self.top_features, 2)
         p_values = []
         for comb in feature_combinations:
-            if comb[0] == comb[1]:
-                continue
             model1_features, model2_features = comb[0], comb[1]
-            observed_data = [
-                [
-                    len(model1_features.intersection(model2_features)),
-                    len(model1_features - model2_features)
-                ],
-                [
-                    len(model2_features - model1_features),
-                    len(model2_features - model1_features)
-                ]
-            ]
-            try:
-                chi2, p, _, _ = chi2_contingency(observed_data)
-            except Exception as e:
-                logger.error(e)
+
+            set_model1 = {tuple(row) for arr in model1_features for row in arr}
+            set_model2 = {tuple(row) for arr in model2_features for row in arr}
+
+            # Determine common features between models
+            common_features = len(set_model1.intersection(set_model2))
+            unique_model1 = len(set_model1 - set_model2)
+            unique_model2 = len(set_model2 - set_model1)
+
+            # Construct the contingency table for chi-square test
+            observed_data = [[common_features, unique_model1], [unique_model2, 0]]
+
+            # Perform chi-square test
+            _, p, _, _ = chi2_contingency(observed_data)
             p_values.append(p)
 
-        significant_differences = [{p, p < 0.05} for p in p_values]
+        # Assess significant differences using p-values
+        significant_differences = sum(p < self.p for p in p_values)
         logger.info(f"Significant differences between feature sets in: {significant_differences}")
         return significant_differences

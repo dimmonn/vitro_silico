@@ -2,17 +2,19 @@ from sklearn.inspection import permutation_importance
 from lime.lime_tabular import LimeTabularExplainer
 import numpy as np
 from scripts.base_logger import VitroLogger
+from collections import Counter
 
 logger = VitroLogger()
 
 
 class BaseImportanceFactor:
 
-    def __init__(self, model, X: np.ndarray, y: np.ndarray, top: int = 10):
+    def __init__(self, model, X: np.ndarray, y: np.ndarray, top: int = 3, debug: bool = False):
         self.model = model
         self.X = X
         self.y = y
         self.top = top
+        self.debug = debug
 
     def process(self) -> np.ndarray:
         pass
@@ -27,7 +29,7 @@ class RandomForestRegressorImportanceFactor(BaseImportanceFactor):
         feature_importances = np.array(self.model.feature_importances_)
         top_features_indices = np.argsort(feature_importances)[::-1][
                                :(self.top if self.top < feature_importances.size else feature_importances.size)]
-        return self.X[:, top_features_indices], self.y
+        return self.X[:, top_features_indices]
 
 
 class LinearRegressionImportanceFactor(BaseImportanceFactor):
@@ -39,7 +41,7 @@ class LinearRegressionImportanceFactor(BaseImportanceFactor):
         coefficients = self.model.coef_
         top_coefficient_indices = np.argsort(abs(coefficients))[::-1][
                                   :(self.top if self.top < coefficients.size else coefficients.size)]
-        return self.X[:, top_coefficient_indices], self.y
+        return self.X[:, top_coefficient_indices]
 
 
 class SVRImportanceFactor(BaseImportanceFactor):
@@ -50,7 +52,7 @@ class SVRImportanceFactor(BaseImportanceFactor):
         result = permutation_importance(self.model, self.X, self.y, n_repeats=10, random_state=42)
         importance = result.importances_mean
         top_indices = np.argsort(importance)[::-1][:(self.top if self.top < importance.size else importance.size)]
-        return self.X[:, top_indices], self.y
+        return self.X[:, top_indices]
 
 
 class GradientBoostingRegressorImportanceFactor(BaseImportanceFactor):
@@ -61,7 +63,7 @@ class GradientBoostingRegressorImportanceFactor(BaseImportanceFactor):
         feature_importances = self.model.feature_importances_
         top_features_indices = np.argsort(feature_importances)[::-1][
                                :(self.top if self.top < feature_importances.size else feature_importances.size)]
-        return self.X[:, top_features_indices], self.y
+        return self.X[:, top_features_indices]
 
 
 class MLPRegressorImportanceFactor(BaseImportanceFactor):
@@ -79,9 +81,12 @@ class MLPRegressorImportanceFactor(BaseImportanceFactor):
             try:
                 top_feature_indices = [int(feature[0].split()[0]) for feature in
                                        top_features]
-            except:
+            except Exception as e:
                 if self.debug:
-                    logger.error(message=f'strange feature {str(top_features)}')
+                    logger.error(message=f'strange feature {str(top_features)} failed {e}')
                 continue
             top_indices.append(top_feature_indices)
-            return self.X[:, top_indices], self.y
+
+        counter = Counter(map(tuple, top_indices))
+
+        return self.X[:, max(counter, key=counter.get)]
