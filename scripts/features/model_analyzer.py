@@ -11,9 +11,9 @@ class Analyzer:
 
     def __init__(self, p: float = 0.05):
         self.p = p
-        self.top_features: List[np.ndarray] = []
+        self.top_features: List[dict[str, np.ndarray]] = []
 
-    def append_features(self, selected_feature: np.ndarray):
+    def append_features(self, selected_feature: List[dict[str, np.ndarray]]):
         self.top_features.append(selected_feature)
 
     def analyze_feature_sets(self):
@@ -22,8 +22,8 @@ class Analyzer:
         for comb in feature_combinations:
             model1_features, model2_features = comb[0], comb[1]
 
-            set_model1 = {tuple(row) for arr in model1_features for row in arr}
-            set_model2 = {tuple(row) for arr in model2_features for row in arr}
+            set_model1 = {tuple(row) for arr in list(model1_features[0].values()) for row in arr}
+            set_model2 = {tuple(row) for arr in list(model2_features[0].values()) for row in arr}
 
             # Determine common features between models
             common_features = len(set_model1.intersection(set_model2))

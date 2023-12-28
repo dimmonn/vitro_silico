@@ -16,7 +16,7 @@ class BaseImportanceFactor:
         self.top = top
         self.debug = debug
 
-    def process(self) -> np.ndarray:
+    def process(self) -> dict[str, np.ndarray]:
         pass
 
 
@@ -25,11 +25,11 @@ class RandomForestRegressorImportanceFactor(BaseImportanceFactor):
     def __init__(self, model, X: np.ndarray, y: np.ndarray):
         super().__init__(model, X, y)
 
-    def process(self) -> np.ndarray:
+    def process(self) -> dict[str, np.ndarray]:
         feature_importances = np.array(self.model.feature_importances_)
         top_features_indices = np.argsort(feature_importances)[::-1][
                                :(self.top if self.top < feature_importances.size else feature_importances.size)]
-        return self.X[:, top_features_indices]
+        return {str(type(self).__name__): self.X[:, top_features_indices]}
 
 
 class LinearRegressionImportanceFactor(BaseImportanceFactor):
@@ -37,40 +37,40 @@ class LinearRegressionImportanceFactor(BaseImportanceFactor):
     def __init__(self, model, X: np.ndarray, y: np.ndarray):
         super().__init__(model, X, y)
 
-    def process(self) -> np.ndarray:
+    def process(self) -> dict[str, np.ndarray]:
         coefficients = self.model.coef_
         top_coefficient_indices = np.argsort(abs(coefficients))[::-1][
                                   :(self.top if self.top < coefficients.size else coefficients.size)]
-        return self.X[:, top_coefficient_indices]
+        return {str(type(self).__name__): self.X[:, top_coefficient_indices]}
 
 
 class SVRImportanceFactor(BaseImportanceFactor):
     def __init__(self, model, X: np.ndarray, y: np.ndarray):
         super().__init__(model, X, y)
 
-    def process(self) -> np.ndarray:
+    def process(self) -> dict[str, np.ndarray]:
         result = permutation_importance(self.model, self.X, self.y, n_repeats=10, random_state=42)
         importance = result.importances_mean
         top_indices = np.argsort(importance)[::-1][:(self.top if self.top < importance.size else importance.size)]
-        return self.X[:, top_indices]
+        return {str(type(self).__name__): self.X[:, top_indices]}
 
 
 class GradientBoostingRegressorImportanceFactor(BaseImportanceFactor):
     def __init__(self, model, X: np.ndarray, y: np.ndarray):
         super().__init__(model, X, y)
 
-    def process(self) -> np.ndarray:
+    def process(self) -> dict[str, np.ndarray]:
         feature_importances = self.model.feature_importances_
         top_features_indices = np.argsort(feature_importances)[::-1][
                                :(self.top if self.top < feature_importances.size else feature_importances.size)]
-        return self.X[:, top_features_indices]
+        return {str(type(self).__name__): self.X[:, top_features_indices]}
 
 
 class MLPRegressorImportanceFactor(BaseImportanceFactor):
     def __init__(self, model, X: np.ndarray, y: np.ndarray):
         super().__init__(model, X, y)
 
-    def process(self) -> np.ndarray:
+    def process(self) -> dict[str, np.ndarray]:
         explainer = LimeTabularExplainer(self.X, mode='regression')
         top_indices = []
 
@@ -89,4 +89,4 @@ class MLPRegressorImportanceFactor(BaseImportanceFactor):
 
         counter = Counter(map(tuple, top_indices))
 
-        return self.X[:, max(counter, key=counter.get)]
+        return {str(type(self).__name__): self.X[:, max(counter, key=counter.get)]}
