@@ -39,7 +39,6 @@ class FeatureExtractor:
                     Descriptors.NOCount(mol),
                     Descriptors.FractionCSP3(mol),
                     Descriptors.BalabanJ(mol),
-                    # Add 10 descriptors here or more as needed
                 ]
                 return descriptors
             else:

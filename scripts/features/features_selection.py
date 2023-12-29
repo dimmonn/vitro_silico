@@ -19,7 +19,7 @@ class FeatureSelector:
     #     [16, 17, 18],
     #     [19, 20, 21],
     #     [22, 23, 24]
-    # ])
+    # ])  [3,2,1]
     # importance factor [0.1, 0.3, 0.2]
     # result
     # [[ 2  3 1]

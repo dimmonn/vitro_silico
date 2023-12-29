@@ -20,11 +20,6 @@ if __name__ == "__main__":
     custom_significant_differences = custom_analyzer.analyze_feature_sets()
     logger.info(custom_significant_differences)
 
-    for subarray in custom_analyzer.top_features:
-        for features in subarray:
-            for i in range(3):
-                print()
-
     context = ModelContex()
     cross_analyzer = Analyzer()
     for model in context.models:

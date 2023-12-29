@@ -3,7 +3,8 @@ from scripts.loaders.data_loading import DataLoader
 from scripts.features.features_selection import FeatureSelector
 from scripts.factories.importance_factor import *
 from scripts.factories.selection_factory import ImportanceFactorySelector
-
+import math
+import pandas as pd
 
 class BaseStrategy:
 
@@ -56,7 +57,7 @@ class BaseStrategy:
 
     def get_features_and_labels(self, data):
         X = data['features']
-        y_exp = data['y_exp']
+        y_exp = pd.Series([math.log(x + 1) for x in data['y_exp']])
         y_sim = data['y_sim']
         return np.array(X.tolist()), np.array(y_exp.tolist()), np.array(y_sim.tolist())
 
