@@ -13,15 +13,21 @@ data
     ├── 2Z5Y.csv
     └── 5HT2.csv
 scripts
-├── app.log
 ├── base_logger.py
-├── data_loading.py
-├── feature_engineering.py
-├── features_selection.py
-├── freesolv_dglgraph.bin
-├── model_analyzer.py
-├── model_training.py
-├── strategies.py
+├── checker.py
+├── factories
+│   ├── importance_factor.py
+│   └── selection_factory.py
+├── features
+│   ├── feature_engineering.py
+│   ├── features_selection.py
+│   └── model_analyzer.py
+├── loaders
+│   └── data_loading.py
+├── processor
+│   ├── model_training.py
+│   └── strategies.py
+
 
 ```
 
