@@ -14,7 +14,6 @@ data
     └── 5HT2.csv
 scripts
 ├── base_logger.py
-├── checker.py
 ├── factories
 │   ├── importance_factor.py
 │   └── selection_factory.py
